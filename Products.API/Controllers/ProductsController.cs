@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Products.Domain;
+using Products.API.Models;
+using System.IO;
+using Products.API.Helpers;
 
 namespace Products.API.Controllers
 {
@@ -74,18 +77,52 @@ namespace Products.API.Controllers
 
         // POST: api/Products
         [ResponseType(typeof(Product))]
-        public async Task<IHttpActionResult> PostProduct(Product product)
+        public async Task<IHttpActionResult> PostProduct(ProductRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
+            if(request.ImageArray != null && request.ImageArray.Length > 0)
+            {
+                var stream = new MemoryStream(request.ImageArray);
+                var guid = Guid.NewGuid().ToString();
+                var file = string.Format("{0}.jpeg",guid);
+                var folder = "~/Content/Images";
+                var fullPath = string.Format("{0}/{1}", folder, file);
+                var response = FilesHelper.UploadPhoto(stream, folder, fullPath);
+
+                if (response)
+                {
+                    request.Image = fullPath;
+                }
+            }
+            var product = ToProduct(request);
             db.Products.Add(product);
             await db.SaveChangesAsync();
 
             return CreatedAtRoute("DefaultApi", new { id = product.ProductId }, product);
         }
+
+
+        private Product ToProduct(ProductRequest request)
+        {
+            return new Product
+            {
+                Category = request.Category,
+                CategoryId = request.CategoryId,
+                Description = request.Description,
+                Image = request.Image,
+                IsActive = request.IsActive,
+                LastPurchase = request.LastPurchase,
+                Price = request.Price,
+                ProductId = request.ProductId,
+                Remarks = request.Remarks,
+                Stock = request.Stock,
+            };
+        }
+
 
         // DELETE: api/Products/5
         [ResponseType(typeof(Product))]

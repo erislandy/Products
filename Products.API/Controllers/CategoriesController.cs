@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using Products.Domain;
+using Products.API.Models;
 
 namespace Products.API.Controllers
 {
@@ -19,9 +20,43 @@ namespace Products.API.Controllers
         private DataContext db = new DataContext();
 
         // GET: api/Categories
-        public IQueryable<Category> GetCategories()
+        public async Task<IHttpActionResult> GetCategories()
         {
-            return db.Categories;
+            var categories =  await db.Categories.ToListAsync();
+            var categoriesResponse = new List<CategoryResponse>();
+
+            foreach (var category in categories)
+            {
+                var productsResponse = new List<ProductResponse>();
+                foreach (var product in category.Products)
+                {
+                    productsResponse.Add(new ProductResponse()
+                    {
+                        CategoryId = product.CategoryId,
+                        Description = product.Description,
+                        Image = product.Image,
+                        IsActive = product.IsActive,
+                        LastPurchase = product.LastPurchase,
+                        Price = product.Price,
+                        ProductId = product.ProductId,
+                        Remarks = product.Remarks,
+                        Stock = product.Stock
+
+                    });
+                }
+
+
+
+                categoriesResponse.Add(new CategoryResponse()
+                {
+                    CategoryId = category.CategoryId,
+                    Description = category.Description,
+                    Products = productsResponse
+                });
+            }
+
+            
+            return Ok(categoriesResponse);
         }
 
         // GET: api/Categories/5
@@ -57,16 +92,20 @@ namespace Products.API.Controllers
             {
                 await db.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!CategoryExists(id))
+                if (ex.InnerException != null &&
+                    ex.InnerException.InnerException != null &&
+                    ex.InnerException.InnerException.Message.Contains("Index"))
                 {
-                    return NotFound();
+                    return BadRequest("there are a record width a same description");
                 }
                 else
                 {
-                    throw;
+                    return BadRequest(ex.Message);
                 }
+
+
             }
 
             return StatusCode(HttpStatusCode.NoContent);
@@ -82,8 +121,28 @@ namespace Products.API.Controllers
             }
 
             db.Categories.Add(category);
-            await db.SaveChangesAsync();
 
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if(ex.InnerException != null &&
+                    ex.InnerException.InnerException != null &&
+                    ex.InnerException.InnerException.Message.Contains("Index"))
+                {
+                    return BadRequest("there are a record width a same description");
+                }
+                else
+                {
+                    return BadRequest(ex.Message);
+                }
+
+               
+            }
+            
+           
             return CreatedAtRoute("DefaultApi", new { id = category.CategoryId }, category);
         }
 
@@ -98,7 +157,25 @@ namespace Products.API.Controllers
             }
 
             db.Categories.Remove(category);
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null &&
+                    ex.InnerException.InnerException != null &&
+                    ex.InnerException.InnerException.Message.Contains("REFERENCE"))
+                {
+                    return BadRequest("You can't delete this recors, 'cause it has related records.");
+                }
+                else
+                {
+                    return BadRequest(ex.Message);
+                }
+
+
+            }
 
             return Ok(category);
         }

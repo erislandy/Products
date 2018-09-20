@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Products.Views.NewProductView"
+             BindingContext="{Binding Main, Source={StaticResource Locator}}"
+             Title="New Product">
+    <ContentPage.Content>
+        <ScrollView>
+            <StackLayout
+            BindingContext="{Binding NewProduct}"
+            Padding="5">
+
+                <Grid
+                    RowSpacing="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+
+                    </Grid.RowDefinitions>
+
+                    <Label
+                    Grid.Column="0"
+                    Grid.Row="0"
+                    Text="Description:"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    </Label>
+                    <Entry
+                    Grid.Column="1"
+                    Grid.Row="0"
+                    Placeholder="Enter product description..."
+                    Text="{Binding ProductDescription, Mode=TwoWay}"
+                    VerticalOptions="Center">
+                    </Entry>
+                    <Label
+                    Grid.Column="0"
+                    Grid.Row="1"
+                    Text="Price:"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    </Label>
+                    <Entry
+                    Grid.Column="1"
+                    Grid.Row="1"
+                    Placeholder="Enter product price..."
+                    Text="{Binding Price, Mode=TwoWay}"
+                    VerticalOptions="Center">
+                    </Entry>
+                    <Label
+                    Grid.Column="0"
+                    Grid.Row="2"
+                    HorizontalOptions="End"
+                    Text="IsActive:"
+                    VerticalOptions="Center">
+                    </Label>
+                    <Switch
+                    Grid.Column="1"
+                    Grid.Row="2"
+                    HorizontalOptions="Start"
+                    IsToggled="{Binding IsActive, Mode=TwoWay}"
+                    VerticalOptions="Center">
+                    </Switch>
+                    <Label
+                    Grid.Column="0"
+                    Grid.Row="3"
+                    Text="Stock:"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    </Label>
+                    <Entry
+                    Grid.Column="1"
+                    Grid.Row="3"
+                    Placeholder="Enter product stock..."
+                    Text="{Binding Stock, Mode=TwoWay}"
+                    VerticalOptions="Center">
+                    </Entry>
+                    <Label
+                    Grid.Column="0"
+                    Grid.Row="4"
+                    Text="LastPurchase:"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    </Label>
+                    <DatePicker
+                    Grid.Column="1"
+                    Grid.Row="4"
+                    Date="{Binding LastPurchase, Mode=TwoWay}"
+                    VerticalOptions="Center">
+                    </DatePicker>
+                    <Label
+                    Grid.Column="0"
+                    Grid.Row="5"
+                    Text="Remarks:"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                    </Label>
+                    <Entry
+                    Grid.Column="1"
+                    Grid.Row="5"
+                    Placeholder="Enter product remarks..."
+                    Text="{Binding Remarks, Mode=TwoWay}"
+                    VerticalOptions="Center">
+                    </Entry>
+
+                </Grid>
+                <ActivityIndicator
+                IsRunning="{Binding IsRunning, Mode=TwoWay}"
+                VerticalOptions="CenterAndExpand"
+                    HeightRequest="10">
+                </ActivityIndicator>
+
+                <Image
+                    HeightRequest="150"
+                    Source="{Binding ImageSource}"
+                    WidthRequest="150">
+                    <Image.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding ChangeImageCommand}"/>
+                    </Image.GestureRecognizers>
+                </Image>
+                <Label
+                    FontSize="Small"
+                    HorizontalOptions="Center"
+                    Text="Tap on image to change it">
+                    
+                </Label>
+
+                <Button
+                BackgroundColor="Navy"
+                BorderRadius="23"
+                Command="{Binding SaveCommand}"
+                HeightRequest="46"
+                IsEnabled="{Binding IsEnabled, Mode=TwoWay}"
+                Margin="50,0"
+                Text="Save"
+                TextColor="White"
+                VerticalOptions="EndAndExpand">
+                </Button>
+
+            </StackLayout>
+        </ScrollView>
+        
+    </ContentPage.Content>
+</ContentPage>

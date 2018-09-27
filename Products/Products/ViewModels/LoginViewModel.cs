@@ -117,7 +117,7 @@ namespace Products.ViewModels
         DialogService dialogService;
         IApiService apiService;
         NavigationService navigationService;
-
+        DataService dataService;
         #endregion
        
         #region Constructors
@@ -129,7 +129,7 @@ namespace Products.ViewModels
             apiService = new ApiServiceWithoutConnection();
             dialogService = new DialogService();
             navigationService = new NavigationService();
-
+            dataService = new DataService();
             Email = "erislandy.cabrales@gmail.com";
             Password = "123456";
         }
@@ -198,18 +198,54 @@ namespace Products.ViewModels
 
             }
 
+            response.IsRemembered = IsToggled;
+            response.Password = Password;
+            dataService.DeleteAllAndInsert(response);
+
             IsRunning = false;
             IsEnabled = true;
             var mainViewModel = MainViewModel.GetInstance();
             mainViewModel.Token = response;
             mainViewModel.CategoriesViewModel = new CategoriesViewModel();
-            await navigationService.Navigate("CategoriesView");
+            navigationService.SetMainPage("MasterView");
             
             Email = null;
             Password = null;
             
 
         }
+
+        public ICommand RegisterNewUserCommand
+        {
+            get
+            {
+                return new RelayCommand(RegisterNewUser);
+            }
+        }
+
+        async void RegisterNewUser()
+        {
+            MainViewModel.GetInstance().NewCustomer = new NewCustomerViewModel();
+            await navigationService.NavigateOnLogin("NewCustomerView");
+        }
+
+        public ICommand RecoverPasswordCommand
+        {
+            get
+            {
+                return new RelayCommand(RecoverPassword);
+            }
+        }
+
+        async void RecoverPassword()
+        {
+            MainViewModel.GetInstance().PasswordRecovery =
+                new PasswordRecoveryViewModel();
+            await navigationService.NavigateOnLogin("PasswordRecoveryView");
+        }
+
+
+
 
         #endregion
     }

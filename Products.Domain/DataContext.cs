@@ -13,6 +13,7 @@ namespace Products.Domain
         public DbSet<Category> Categories { get; set; }
 
         public DbSet<Product> Products { get; set; }
+        public DbSet<Customer> Customers { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

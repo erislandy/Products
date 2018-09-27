@@ -26,7 +26,7 @@ namespace Products.ViewModels
         DialogService dialogService;
         IApiService apiService;
         NavigationService navigationService;
-
+        DataService dataService;
         #endregion
 
         #region Attributes
@@ -225,6 +225,8 @@ namespace Products.ViewModels
             }
         }
 
+       
+
         #endregion
 
         #region Constructors
@@ -237,6 +239,7 @@ namespace Products.ViewModels
             apiService = new ApiServiceWithoutConnection();
             dialogService = new DialogService();
             navigationService = new NavigationService();
+            dataService = new DataService();
         }
         #endregion
 
@@ -299,10 +302,13 @@ namespace Products.ViewModels
             IsEnabled = false;
 
             byte[] imageArray = null;
+            var path = string.Empty;
             if (file != null)
             {
                 imageArray = FilesHelper.ReadFully(file.GetStream());
+                path = file.Path;
                 file.Dispose();
+
             }
 
             var mainViewModel = MainViewModel.GetInstance();
@@ -317,8 +323,8 @@ namespace Products.ViewModels
                 Price = decimal.Parse(Price),
                 Remarks = Remarks,
                 Stock = double.Parse(Stock),
+                Image = path
             };
-
 
             var connection = await apiService.CheckConnection();
             if (!connection.IsSuccess)
@@ -326,35 +332,42 @@ namespace Products.ViewModels
                 IsRunning = false;
                 IsEnabled = true;
 
-                await dialogService.ShowMessage("Error", connection.Message);
-                return;
-            }
-          
-           
-            var apiServiceWithoutConection = (ApiServiceWithoutConnection)apiService;
-            var response = await apiServiceWithoutConection.PostProduct(
-                "http://productszuluapi.azurewebsites.net",
-                "/api",
-                "/Products",
-                mainViewModel.Token.TokenType,
-                mainViewModel.Token.AccessToken,
-                product);
-
-            if (!response.IsSuccess)
-            {
-                IsRunning = false;
-                IsEnabled = true;
+                product.PendingToSave = true;
+                dataService.Insert(product);
                 await dialogService.ShowMessage(
-                    "Error",
-                    response.Message);
-                return;
-
+                    "Message",
+                    "The product was save on local DB");
+               
             }
+            else
+            {
+                var apiServiceWithoutConection = (ApiServiceWithoutConnection)apiService;
+                var response = await apiServiceWithoutConection.PostProduct(
+                    "http://productszuluapi.azurewebsites.net",
+                    "/api",
+                    "/Products",
+                    mainViewModel.Token.TokenType,
+                    mainViewModel.Token.AccessToken,
+                    product);
 
-            product = (Product)response.Result;
+                if (!response.IsSuccess)
+                {
+                    IsRunning = false;
+                    IsEnabled = true;
+                    await dialogService.ShowMessage(
+                        "Error",
+                        response.Message);
+                    return;
+
+                }
+
+                product = (Product)response.Result;
+            }
+           
+            
             var productViewModel = mainViewModel.ProductsViewModel;
             productViewModel.AddProduct(product);
-            await navigationService.Back();
+            await navigationService.BackOnMaster();
 
 
             IsRunning = false;
@@ -392,14 +405,16 @@ namespace Products.ViewModels
                         new StoreCameraMediaOptions
                         {
                             Directory = "Sample",
-                            Name = "test.jpg",
+                            Name = Guid.NewGuid().ToString() + ".jpeg" ,
                             PhotoSize = PhotoSize.Small,
                         }
                     );
+                    
                 }
                 else
                 {
                     file = await CrossMedia.Current.PickPhotoAsync();
+                    
                 }
             }
             else
@@ -414,6 +429,7 @@ namespace Products.ViewModels
                     var stream = file.GetStream();
                     return stream;
                 });
+
             }
         }
 

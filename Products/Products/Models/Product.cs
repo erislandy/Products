@@ -1,12 +1,15 @@
 ﻿using GalaSoft.MvvmLight.Command;
 using Products.Services;
 using Products.ViewModels;
+using SQLite.Net.Attributes;
+using SQLiteNetExtensions.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Xamarin.Forms;
 
 namespace Products.Models
 {
@@ -14,8 +17,16 @@ namespace Products.Models
     {
        
         #region Properties
+
+        [PrimaryKey, AutoIncrement]
         public int ProductId { get; set; }
+
+        [ForeignKey(typeof(Category))]
         public int CategoryId { get; set; }
+
+        [ManyToOne]
+        public Category Category { get; set; }
+
         public string Description { get; set; }
 
         public decimal Price { get; set; }
@@ -38,14 +49,20 @@ namespace Products.Models
                 }
                 else
                 {
+                    /* Desde el API
                     return string.Format(
                         "http://productszuluapi.azurewebsites.new/{0}",
-                        Image.Substring(1));
+                        Image.Substring(1));*/
+
+                    return Image;
                 }
             }
 
         }
         public byte[] ImageArray { get; set; }
+
+        public bool PendingToSave { get; set; }
+
         #endregion
 
         #region Services
@@ -75,7 +92,7 @@ namespace Products.Models
         async void EditMethod()
         {
             MainViewModel.GetInstance().EditProduct = new EditProductViewModel(this);
-            await navigationService.Navigate("EditProductView");
+            await navigationService.NavigateOnMaster("EditProductView");
         }
 
         

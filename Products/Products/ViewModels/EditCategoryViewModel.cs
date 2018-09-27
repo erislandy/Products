@@ -158,7 +158,7 @@ namespace Products.ViewModels
 
             var categoryViewModel = CategoriesViewModel.GetInstance();
             categoryViewModel.UpdateCategory(_category);
-            await navigationService.Back();
+            await navigationService.BackOnMaster();
 
 
             IsRunning = false;

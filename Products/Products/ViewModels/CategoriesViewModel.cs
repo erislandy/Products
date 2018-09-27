@@ -24,7 +24,7 @@ namespace Products.ViewModels
         List<Category> categories;
         bool _isRefreshing;
         ObservableCollection<Category> _categories;
-
+        string _filter;
         #endregion
 
         #region Services
@@ -32,6 +32,7 @@ namespace Products.ViewModels
         IApiService apiService;
         DialogService dialogService;
         NavigationService navigationService;
+        DataService dataService;
         
         #endregion
         
@@ -74,6 +75,24 @@ namespace Products.ViewModels
                 }
             }
         }
+        public string  Filter
+        {
+            get
+            {
+                return _filter;
+            }
+            set
+            {
+                if(_filter != value)
+                {
+                    _filter = value;
+                    Search();
+                    PropertyChanged?.Invoke(
+                        this,
+                        new PropertyChangedEventArgs(nameof(Filter)));
+                }
+            }
+        }
         #endregion
 
         #region Constructors
@@ -83,6 +102,7 @@ namespace Products.ViewModels
             apiService = new ApiServiceWithoutConnection();
             dialogService = new DialogService();
             navigationService = new NavigationService();
+            dataService = new DataService();
             LoadCategories();
         }
         #endregion
@@ -111,6 +131,33 @@ namespace Products.ViewModels
             }
 
         }
+
+        public ICommand SearchCommand
+        {
+            get
+            {
+                return new RelayCommand(Search);
+            }
+        }
+        void Search()
+        {
+            IsRefreshing = true;
+
+            if (string.IsNullOrEmpty(Filter))
+            {
+                Categories = new ObservableCollection<Category>(
+                    categories.OrderBy(c => c.Description));
+            }
+            else
+            {
+                Categories = new ObservableCollection<Category>(categories
+                    .Where(c => c.Description.ToLower().Contains(Filter.ToLower()))
+                    .OrderBy(c => c.Description));
+            }
+
+            IsRefreshing = false;
+
+        }
         #endregion
 
         #region Methods
@@ -120,36 +167,58 @@ namespace Products.ViewModels
             var connection = await apiService.CheckConnection();
             if (!connection.IsSuccess)
             {
-                await dialogService.ShowMessage(
+                categories = dataService.Get<Category>(true);
+                if(categories.Count == 0)
+                {
+                    await dialogService.ShowMessage(
                     "Error",
-                    connection.Message);
-                IsRefreshing = false;
-                return;
+                   "Dear user YAPE");
+                    IsRefreshing = false;
+                    return;
+                }
+                
             }
-
-            var mainViewModel = MainViewModel.GetInstance();
-            var response = await apiService.GetList<Category>(
-                "http://productszuluapi.azurewebsites.net",
-                "/api",
-                "/Categories",
-                mainViewModel.Token.TokenType,
-                mainViewModel.Token.AccessToken);
-
-            if (!response.IsSuccess)
+            else
             {
-                await dialogService.ShowMessage(
-                    "Error",
-                    response.Message);
-                IsRefreshing = false;
-                return;
+                var mainViewModel = MainViewModel.GetInstance();
+                var response = await apiService.GetList<Category>(
+                    "http://productszuluapi.azurewebsites.net",
+                    "/api",
+                    "/Categories",
+                    mainViewModel.Token.TokenType,
+                    mainViewModel.Token.AccessToken);
+
+                if (!response.IsSuccess)
+                {
+                    await dialogService.ShowMessage(
+                        "Error",
+                        response.Message);
+                    IsRefreshing = false;
+                    return;
+                }
+
+                categories = (List<Category>)response.Result;
+                SaveCategoriesOnDB();
             }
 
-            categories = (List<Category>) response.Result;
-            Categories = new ObservableCollection<Category>(
-                categories.OrderBy(c => c.Description));
+
+            Search();
             IsRefreshing = false;
         }
-       
+
+        void SaveCategoriesOnDB()
+        {
+            dataService.DeleteAll<Category>();
+            dataService.DeleteAll<Product>();
+
+            foreach (var category in categories)
+            {
+                dataService.Insert(category);
+                dataService.Save(category.Products);
+            }
+        }
+
+
         public void AddCategory(Category category)
         {
             IsRefreshing = true;

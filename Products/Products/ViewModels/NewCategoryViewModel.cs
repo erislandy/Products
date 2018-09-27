@@ -159,7 +159,7 @@ namespace Products.ViewModels
             category = (Category)response.Result;
             var categoryViewModel = CategoriesViewModel.GetInstance();
             categoryViewModel.AddCategory(category);
-            await navigationService.Back();
+            await navigationService.BackOnMaster();
 
 
             IsRunning = false;

@@ -8,6 +8,8 @@ namespace Products.Models
     using System.Collections.Generic;
     using System.Windows.Input;
     using System;
+    using SQLite.Net.Attributes;
+    using SQLiteNetExtensions.Attributes;
 
     public class Category
     {
@@ -19,10 +21,12 @@ namespace Products.Models
         #endregion
 
         #region Properties
+        [PrimaryKey]
         public int CategoryId { get; set; }
 
         public string Description { get; set; }
 
+        [OneToMany(CascadeOperations = CascadeOperation.All)]
         public List<Product> Products { get; set; }
         #endregion
         
@@ -49,7 +53,7 @@ namespace Products.Models
             var mainViewModel = MainViewModel.GetInstance();
             mainViewModel.ProductsViewModel = new ProductsViewModel(Products);
             mainViewModel.ProductsViewModel.Category = this;
-            await navigationService.Navigate("ProductsView");
+            await navigationService.NavigateOnMaster("ProductsView");
         }
 
         public ICommand EditCommand
@@ -63,7 +67,7 @@ namespace Products.Models
         async void EditMethod()
         {
             MainViewModel.GetInstance().EditCategory = new EditCategoryViewModel(this);
-            await navigationService.Navigate("EditCategoryView");
+            await navigationService.NavigateOnMaster("EditCategoryView");
         }
 
         public ICommand DeleteCommand

@@ -3,6 +3,7 @@ using Products.Models;
 using Products.Services;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,28 @@ namespace Products.ViewModels
 
         public NewProductViewModel NewProduct { get; set; }
         public EditProductViewModel EditProduct { get; internal set; }
+        public ObservableCollection<Menu> MyMenu
+        {
+            get;
+            set;
+        }
+
+        public MyProfileViewModel MyProfile { get; set; }
+
+
+        public NewCustomerViewModel NewCustomer
+        {
+            get;
+            set;
+        }
+
+        public SyncViewModel  Sync
+        {
+            get;
+            set;
+        }
+
+        public PasswordRecoveryViewModel PasswordRecovery { get; set; }
 
 
         #endregion
@@ -38,6 +61,7 @@ namespace Products.ViewModels
             instance = this;
             Login = new LoginViewModel();
             navigationService = new NavigationService();
+            LoadMenu();
         }
         #endregion
 
@@ -67,7 +91,7 @@ namespace Products.ViewModels
         async void NewCategoryMethod()
         {
             NewCategory = new NewCategoryViewModel();
-            await navigationService.Navigate("NewCategoryView");
+            await navigationService.NavigateOnMaster("NewCategoryView");
         }
         public ICommand NewProductCommand
         {
@@ -81,11 +105,48 @@ namespace Products.ViewModels
         async void NewProductMethod()
         {
             NewProduct = new NewProductViewModel();
-            await navigationService.Navigate("NewProductView");
+            await navigationService.NavigateOnMaster("NewProductView");
         }
+
+      
+
 
         #endregion
 
-        
+        #region Methods
+        void LoadMenu()
+        {
+            MyMenu = new ObservableCollection<Menu>();
+
+            MyMenu.Add(new Menu
+            {
+                Icon = "Settings_02.png",
+                PageName = "MyProfileView",
+                Title = "My Profile",
+            });
+
+            MyMenu.Add(new Menu
+            {
+                Icon = "Map_Location.png",
+                PageName = "UbicationsView",
+                Title = "Ubications",
+            });
+
+            MyMenu.Add(new Menu
+            {
+                Icon = "sync",
+                PageName = "SyncView",
+                Title = "Sync Offline Operations",
+            });
+
+            MyMenu.Add(new Menu
+            {
+                Icon = "Log_Out_02_WF.png",
+                PageName = "LoginView",
+                Title = "Close sesion",
+            });
+        }
+        #endregion
+
     }
 }

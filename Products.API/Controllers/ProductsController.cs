@@ -42,17 +42,33 @@ namespace Products.API.Controllers
 
         // PUT: api/Products/5
         [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> PutProduct(int id, Product product)
+        public async Task<IHttpActionResult> PutProduct(int id, ProductRequest request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != product.ProductId)
+            if (id != request.ProductId)
             {
                 return BadRequest();
             }
+
+            if(request.ImageArray != null || request.ImageArray.Length > 0)
+            {
+                var stream = new MemoryStream(request.ImageArray);
+                var guid = Guid.NewGuid().ToString();
+                var file = string.Format("{0}.jpeg", guid);
+                var folder = "~/Content/Images";
+                var fullPath = string.Format("{0}/{1}",folder,file);
+                var response = FilesHelper.UploadPhoto(stream, folder, fullPath);
+
+                if (response)
+                {
+                    request.Image = fullPath;
+                }
+            }
+            var product = ToProduct(request);
 
             db.Entry(product).State = EntityState.Modified;
 
@@ -60,19 +76,22 @@ namespace Products.API.Controllers
             {
                 await db.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!ProductExists(id))
+                if (ex.InnerException != null &&
+                    ex.InnerException.InnerException != null &&
+                    ex.InnerException.InnerException.Message.Contains("Index"))
                 {
-                    return NotFound();
+                    return BadRequest("There are a record with the same description.");
                 }
                 else
                 {
-                    throw;
+                    return BadRequest(ex.Message);
                 }
             }
 
-            return StatusCode(HttpStatusCode.NoContent);
+
+            return Ok(product);
         }
 
         // POST: api/Products

@@ -10,6 +10,7 @@ namespace Products.ViewModels
     using Xamarin.Forms;
     using Plugin.Media.Abstractions;
     using Plugin.Media;
+    using Products.Helpers;
 
     public class EditProductViewModel : INotifyPropertyChanged
     {
@@ -322,7 +323,21 @@ namespace Products.ViewModels
 
             _product.IsActive = IsActive;
             _product.Remarks = Remarks;
+            _product.LastPurchase = LastPurchase;
 
+            
+
+            byte[] imageArray = null;
+            var path = string.Empty;
+            if (file != null)
+            {
+                imageArray = FilesHelper.ReadFully(file.GetStream());
+                path = file.Path;
+                _product.ImageArray = imageArray;
+                _product.Image = path;
+                file.Dispose();
+
+            }
             var connection = await apiService.CheckConnection();
             if (!connection.IsSuccess)
             {
@@ -334,7 +349,7 @@ namespace Products.ViewModels
             }
 
             var mainViewModel = MainViewModel.GetInstance();
-           
+            
             var apiServiceWithoutConection = (ApiServiceWithoutConnection)apiService;
             var response = await apiServiceWithoutConection.PutProduct(
                 "http://productszuluapi.azurewebsites.net",
@@ -357,7 +372,7 @@ namespace Products.ViewModels
 
             var productViewModel = mainViewModel.ProductsViewModel;
             productViewModel.UpdateProduct(_product);
-            await navigationService.Back();
+            await navigationService.BackOnMaster();
 
 
             IsRunning = false;

@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Products.Views.LoginView"
+             BackgroundColor="{StaticResource BackgroundColor}"
              BindingContext="{Binding Main, Source={StaticResource Locator}}"
              Title="Login"
              >
@@ -13,6 +14,7 @@
             FontSize="Large"
             HorizontalOptions="Center"
             Text="Products"
+            TextColor="{StaticResource FontColor}"
             >
         </Label>
         <Grid
@@ -26,7 +28,9 @@
                     Grid.Column="0"
                     Grid.Row="0"
                     Text="Email"
-                    VerticalOptions="Center">                    
+                    TextColor="{StaticResource FontColor}"
+                    VerticalOptions="Center"
+                    >                    
                 </Label>
                 <Entry
                     Grid.Column="1"
@@ -43,6 +47,7 @@
                     Grid.Column="0"
                     Grid.Row="1"
                     Text="Password"
+                    TextColor="{StaticResource FontColor}"
                     VerticalOptions="Center">
                 </Label>
                 <Entry
@@ -60,8 +65,10 @@
             Orientation="Horizontal"
             Spacing="16">
             <Label
+                Text="Rememberme"
+                TextColor="{StaticResource FontColor}"
                 VerticalOptions="Center"
-                Text="Rememberme">
+               >
             </Label>
             <Switch
                 IsToggled="{Binding IsToggled, Mode=TwoWay}">
@@ -70,7 +77,7 @@
         <Label
             HorizontalOptions="Center"
             Text="Forgot your password?"
-            TextColor="Blue">
+            TextColor="{StaticResource MainColor}">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer Command="{Binding RecoverPasswordCommand}"/>
             </Label.GestureRecognizers>
@@ -82,7 +89,7 @@
         <StackLayout
             Margin="50,0">
             <Button
-            BackgroundColor="Navy"
+            BackgroundColor="{StaticResource AccentColor1}"
             BorderRadius="23"
             Command="{Binding LoginCommand}"
             HeightRequest="46"
@@ -94,9 +101,9 @@
 
             </Button>
             <Button
-            BackgroundColor="Purple"
+            BackgroundColor="{StaticResource AccentColor2}"
             BorderRadius="23"
-            Command="{Binding NewUserCommand}"
+            Command="{Binding RegisterNewUserCommand}"
             HeightRequest="46"
             IsEnabled="{Binding IsEnabled, Mode=TwoWay}"
             Margin="10,0"

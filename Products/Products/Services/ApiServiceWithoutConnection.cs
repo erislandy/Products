@@ -12,10 +12,15 @@ namespace Products.Services
     using Plugin.Connectivity;
     using Products.Models;
     using System.Linq;
+    using Xamarin.Forms;
+    using System.IO;
+    using Plugin.Media.Abstractions;
+
     public class ApiServiceWithoutConnection : IApiService
     {
         #region Properties
         static IList<Category> CategoriesList;
+        static IList<Customer> customerList;
         #endregion
 
         #region Constructors
@@ -128,7 +133,7 @@ namespace Products.Services
                                     CategoryId = 5,
                                     Description = "Aguardiente Antioqueño X 700 ml",
                                     Price = 4000,
-                                    Image = "null",
+                                    Image = "/storage/emulated/0/Android/data/Products.Android/files/Pictures/Sample/527a1ec6-49ce-4c0a-b461-a18a671592e1.jpeg",
                                     IsActive = true,
                                     Stock = 34,
                                     LastPurchase = new DateTime(2018,09,11),
@@ -139,15 +144,83 @@ namespace Products.Services
 
                         },
                     };
+                customerList = new List<Customer>()
+                {
+                    new Customer()
+                    {
+                        CustomerId = 1,
+                        CustomerType = 1,
+                        Email = "erislandy.cabrales@gmail.com",
+                        Password ="123456",
+                        Address = "La Habana",
+                        FirstName = "Erislandy",
+                        LastName = "Cabrales",
+                        Phone = "52180586"
+                    }
+                };
 
             }
             
         }
 
-       
+
         #endregion
 
         #region Methods
+        public async Task<Response> PasswordRecovery(
+            string urlBase,
+            string servicePrefix,
+            string controller,
+            string email)
+        {
+            try
+            {
+               
+
+                return new Response
+                {
+                    IsSuccess = true,
+                };
+            }
+            catch (Exception ex)
+            {
+                return new Response
+                {
+                    IsSuccess = false,
+                    Message = ex.Message,
+                };
+            }
+        }
+
+        public async Task<Response> ChangePassword(
+       string urlBase,
+       string servicePrefix,
+       string controller,
+       string tokenType,
+       string accessToken,
+       ChangePasswordRequest changePasswordRequest)
+        {
+            try
+            {
+                var customer = customerList.Where(c => c.Email.ToLower() == changePasswordRequest.Email.ToLower()).FirstOrDefault();
+                customer.Password = changePasswordRequest.NewPassword;
+               
+
+                return new Response
+                {
+                    IsSuccess = true,
+                };
+            }
+            catch (Exception ex)
+            {
+                return new Response
+                {
+                    IsSuccess = false,
+                    Message = ex.Message,
+                };
+            }
+        }
+
         public async Task<Response> CheckConnection()
         {
             if (!CrossConnectivity.Current.IsConnected)
@@ -190,28 +263,31 @@ namespace Products.Services
 
             {
                 TokenResponse result;
-                if (username != "erislandy.cabrales@gmail.com" || password != "123456")
+                var customer = customerList.Where(c => c.Email == username).FirstOrDefault();
+                if(customer != null)
                 {
-                    result = new TokenResponse()
+                    if(customer.Password == password)
                     {
-                        ErrorDescription = "The user name or password is incorrect."
-                    };
+                        result = new TokenResponse()
+                        {
+                            AccessToken = "pnVlnGugBc9HLcZbfNXrw2ij6IpyCIAxC_Ohs_XNuZGi75Nj7yxOG40VuBRBhU_hRTCvHJAaetpDIemeqKbBJ1cVXcs1n394uFzVLadvDhit8gityMJt0t50FQpwgKN8EqmoZUhUemRy0OiPevIFnHAlpb-sSR2qJQbUvIBKdT4LxtO00gyNOZOLUyama1cnrkP5ZJ9l8_7NIPEAEf-jtNZXpc3zqhyJeFsfoH8nmQwGPpBsgACn_eRpfzvED4YIR53Dq0waO8auFKUYwvDzyNT4zY309cQRqI3bIe1ZoraViIEqTIQe7mMU4IMDLV4LtiCHuQEgxcHjYXz7zD5LVvdgS9napuEs110lrWlht3OgaoGZYp0HA1bafIXjG28HH-zn_sG2gZlWKr3ipeF8k0W_Alf0hWkb77DWzV7zUydRQVyTVkVIQSpVee2e36LfcjN2k-usplsBfHn6buMz2ZJ4fa2Whbqklaf3le4ubQ6nicLkBTUMocDo4KmAA2L9",
+                            TokenType = "bearer",
+                            ExpiresIn = "1209599",
+                            UserName = "erislandy.cabrales@gmail.com",
+                            Issued = new DateTime(2018, 9, 16, 0, 11, 26),
+                            Expires = new DateTime(2018, 9, 30, 0, 11, 26)
+                        };
+                        return result;
+                    }
                 }
-                else
+               
+                return new TokenResponse()
                 {
-                    result = new TokenResponse()
-                    {
-                        AccessToken = "pnVlnGugBc9HLcZbfNXrw2ij6IpyCIAxC_Ohs_XNuZGi75Nj7yxOG40VuBRBhU_hRTCvHJAaetpDIemeqKbBJ1cVXcs1n394uFzVLadvDhit8gityMJt0t50FQpwgKN8EqmoZUhUemRy0OiPevIFnHAlpb-sSR2qJQbUvIBKdT4LxtO00gyNOZOLUyama1cnrkP5ZJ9l8_7NIPEAEf-jtNZXpc3zqhyJeFsfoH8nmQwGPpBsgACn_eRpfzvED4YIR53Dq0waO8auFKUYwvDzyNT4zY309cQRqI3bIe1ZoraViIEqTIQe7mMU4IMDLV4LtiCHuQEgxcHjYXz7zD5LVvdgS9napuEs110lrWlht3OgaoGZYp0HA1bafIXjG28HH-zn_sG2gZlWKr3ipeF8k0W_Alf0hWkb77DWzV7zUydRQVyTVkVIQSpVee2e36LfcjN2k-usplsBfHn6buMz2ZJ4fa2Whbqklaf3le4ubQ6nicLkBTUMocDo4KmAA2L9",
-                        TokenType = "bearer",
-                        ExpiresIn = "1209599",
-                        UserName = "erislandy.cabrales@gmail.com",
-                        Issued = new DateTime(2018, 9, 16, 0, 11, 26),
-                        Expires = new DateTime(2018, 9, 30, 0, 11, 26)
-                    };
-                }
-
-
-                return result;
+                    ErrorDescription = "The user name or password is incorrect."
+                };
+              
+               
+               
             }
             catch
             {
@@ -499,6 +575,7 @@ namespace Products.Services
                     };
                 }
                 product.ProductId = category.Products.Count + 100;
+
                 category.Products.Add(product);
 
 
@@ -511,6 +588,69 @@ namespace Products.Services
                     Message = "Record added OK",
 
                     Result = product,
+
+                };
+
+            }
+
+            catch (Exception ex)
+
+            {
+
+                return new Response
+
+                {
+
+                    IsSuccess = false,
+
+                    Message = ex.Message,
+
+                };
+
+            }
+
+        }
+
+        public async Task<Response> PostCustomers(
+           string urlBase,
+           string servicePrefix,
+           string controller,
+           Customer model)
+
+        {
+
+            try
+
+            {
+               
+                if (customerList.Where(c => c.Email == model.Email).FirstOrDefault() != null)
+                {
+                    return new Response
+
+                    {
+
+                        IsSuccess = false,
+
+                        Message = string.Format("Customer {0} is an exist customer", model.Email),
+
+                        Result = model,
+
+                    };
+                }
+                model.CustomerId = customerList.Count + 100;
+
+                customerList.Add(model);
+
+
+                return new Response
+
+                {
+
+                    IsSuccess = true,
+
+                    Message = "Record added OK",
+
+                    Result = model,
 
                 };
 
